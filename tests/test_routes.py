@@ -124,7 +124,7 @@ class TestAccountService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # ADD YOUR TEST CASES HERE ...
-    
+    # READ TEST CASES
     def test_read_an_account(self):
         """It should return a single account"""
         account = AccountFactory()
@@ -153,3 +153,81 @@ class TestAccountService(TestCase):
         """It should return 404 when account is not found"""
         response = self.client.get(f"{BASE_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+
+    # UPDATE TEST CASES
+    def test_update_account(self):
+        """It should Update an existing Account"""
+        # create an Account to update
+        test_account = AccountFactory()
+        response = self.client.post(
+            BASE_URL,
+            json=test_account.serialize(),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # update the account
+        new_account = response.get_json()
+        new_account["name"] = "New Name"
+        response = self.client.put(
+            f"{BASE_URL}/{new_account['id']}",
+            json=new_account,
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # check the updated account
+        updated_account = response.get_json()
+        self.assertEqual(updated_account["name"], "New Name")
+
+
+    # DELETE TEST CASES
+    def test_delete_account(self):
+        """It should delete an account"""
+        # create an account to delete
+        test_account = AccountFactory()
+        response = self.client.post(
+            BASE_URL,
+            json=test_account.serialize(),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # delete the account
+        new_account = response.get_json()
+        response = self.client.delete(
+            f"{BASE_URL}/{new_account['id']}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # check the account is deleted
+        response = self.client.get(
+            f"{BASE_URL}/{new_account['id']}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    
+    # LIST TEST CASES
+    def test_get_accounts_list(self):
+        """It should list all customer accounts"""
+        # create multiple accounts
+        accounts = self._create_accounts(5)
+        # get the list of accounts
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(accounts))
+        for i, account in enumerate(accounts):
+            self.assertEqual(data[i]["id"], account.id)
+            self.assertEqual(data[i]["name"], account.name)
+            self.assertEqual(data[i]["email"], account.email)
+            self.assertEqual(data[i]["address"], account.address)
+            self.assertEqual(data[i]["phone_number"], account.phone_number)
+            self.assertEqual(data[i]["date_joined"], str(account.date_joined))
+
+    # Error Handlers - Method Not Allowed
+    def test_method_not_allowed(self):
+        """It should not allow an illegal method call"""
+        response = self.client.delete(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
