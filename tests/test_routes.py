@@ -153,9 +153,9 @@ class TestAccountService(TestCase):
         """It should return 404 when account is not found"""
         response = self.client.get(f"{BASE_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-    
 
     # UPDATE TEST CASES
+
     def test_update_account(self):
         """It should Update an existing Account"""
         # create an Account to update
@@ -181,8 +181,8 @@ class TestAccountService(TestCase):
         updated_account = response.get_json()
         self.assertEqual(updated_account["name"], "New Name")
 
-
     # DELETE TEST CASES
+
     def test_delete_account(self):
         """It should delete an account"""
         # create an account to delete
@@ -206,9 +206,9 @@ class TestAccountService(TestCase):
             f"{BASE_URL}/{new_account['id']}"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-    
-    
+
     # LIST TEST CASES
+
     def test_get_accounts_list(self):
         """It should list all customer accounts"""
         # create multiple accounts
