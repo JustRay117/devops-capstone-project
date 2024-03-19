@@ -12,12 +12,14 @@ from tests.factories import AccountFactory
 from service.common import status  # HTTP Status Codes
 from service.models import db, Account, init_db
 from service.routes import app
+from service import talisman
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql://postgres:postgres@localhost:5432/postgres"
 )
 
 BASE_URL = "/accounts"
+HTTPS_ENVIRON = {'wsgi.url_scheme': 'https'}
 
 
 ######################################################################
@@ -34,6 +36,7 @@ class TestAccountService(TestCase):
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         init_db(app)
+        talisman.force_https = False
 
     @classmethod
     def tearDownClass(cls):
@@ -231,3 +234,33 @@ class TestAccountService(TestCase):
         """It should not allow an illegal method call"""
         response = self.client.delete(BASE_URL)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    # Check security headers in loop, even if one header fails, the rest will be checked
+    def test_security_headers(self):
+        """It should return security headers"""
+        response = self.client.get('/', environ_overrides=HTTPS_ENVIRON)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        headers = {
+            'X-Frame-Options': 'SAMEORIGIN',
+            'X-Content-Type-Options': 'nosniff',
+            'Content-Security-Policy': 'default-src \'self\'; object-src \'none\'',
+            'Referrer-Policy': 'strict-origin-when-cross-origin'
+        }
+        for key, value in headers.items():
+            self.assertEqual(response.headers.get(key), value)
+
+    # NOT WORKING == VERY BAD TEST CASES because IT SKIPS EVERY OTHER TEST CASES
+    # def test_root_url_headers(self):
+    #     """It should have the specified headers and values"""
+    #     response = self.client.get("/", environ_overrides=HTTPS_ENVIRON)
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    #     Checks each header individually with separate assertEqual calls
+    #     headers = response.headers
+    #     self.assertEqual(headers.get("X-Frame-Options"), "SAMEORIGIN")
+    #     self.assertEqual(headers.get("X-Content-Type-Options"), "nosniff")
+    #     self.assertEqual(
+    #         headers.get("Content-Security-Policy"),
+    #         "default-src 'self'; object-src 'none'"
+    #     )
+    #     self.assertEqual(headers.get("Referrer-Policy"), "strict-origin-when-cross-origin")
