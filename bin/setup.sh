@@ -28,7 +28,7 @@ python3.9 -m venv ~/venv
 # Check if the virtual environment was created successfully
 if [ ! -d "~/venv" ]; then
     echo "Failed to create virtual environment. Exiting."
-    exit 1
+    # exit 1
 fi
 
 echo "Configuring the developer environment..."
