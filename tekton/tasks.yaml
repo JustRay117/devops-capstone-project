@@ -80,7 +80,7 @@ spec:
 
         echo "*** Installing Dependencies ***"
         python -m pip install --upgrade pip wheel
-        pip install -qr reqirements.txt
+        pip install -qr requirements.txt
 
         echo "*** Running nosetests with: $(params.args) ***"
         nosetests -v --with-spec --spec-color
