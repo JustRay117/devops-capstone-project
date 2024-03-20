@@ -62,11 +62,11 @@ spec:
     - name: args
       description: The arguments to pass to nosetests
       type: string
-      default: -v
+      default: "-v"
     - name: database_uri
       description: Database to use for testing
       type: string
-      default: sqlite:///test.db
+      default: "sqlite:///test.db"
   steps:
     - name: nosetests
       image: python:3.9-slim
